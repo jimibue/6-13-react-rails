@@ -2,22 +2,41 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import axios from "axios";
 import TodoList from "./components/TodoList";
+import TodoForm from "./components/TodoForm";
 
 function App() {
   const [todos, setTodos] = useState([]);
 
-  function addItem(itemObj) {
-    // need to addItem database
+  // function addItem(name) {
+  //   axios
+  //     .post("/api/items", { name, complete: false })
+  //     .then((res) => {
+  //       setTodos([res.data, ...todos]);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+  // }
+
+  async function addItem(name) {
+    try {
+      const res = await axios.post("/api/items", { name, complete: false });
+      setTodos([res.data, ...todos]);
+    } catch (err) {
+      console.log(err);
+    }
   }
-  function updateTodo(id) {
-    console.log("update clicked");
-    console.log(id);
+
+  async function updateTodo(id) {
+    let { data } = await axios.put(`/api/items/${id}`);
+    setTodos(todos.map((t) => (t.id !== data.id ? t : data)));
   }
+
   function deleteTodo(id) {
     axios
       .delete(`/api/items/${id}`)
       .then((res) => {
-        const filterTodos = todos.filter((t) => t.id !== res.id);
+        const filterTodos = todos.filter((t) => t.id !== res.data.id);
         setTodos(filterTodos);
       })
       .catch((err) => {
@@ -39,7 +58,8 @@ function App() {
   }, []);
   return (
     <div className="App">
-      <h1>working</h1>
+      <TodoForm addItem={addItem} />
+      <h1>Todos</h1>
       <TodoList updateTodo={updateTodo} deleteTodo={deleteTodo} todos={todos} />
     </div>
   );
